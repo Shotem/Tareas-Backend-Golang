@@ -3,7 +3,7 @@ package customers
 import "database/sql"
 
 type Customer struct {
-	CustomerID   int64          `gorm:"primaryKey;column:CustomerID"`
+	CustomerID   string         `gorm:"primaryKey;column:CustomerID"`
 	CompanyName  string         `gorm:"column:CompanyName"`
 	ContactName  sql.NullString `gorm:"column:ContactName"`
 	ContactTitle sql.NullString `gorm:"column:ContactTitle"`

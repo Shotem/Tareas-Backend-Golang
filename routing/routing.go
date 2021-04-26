@@ -30,8 +30,8 @@ func productRoutes(r *echo.Group) {
 }
 
 func customerRoutes(r *echo.Group) {
-	r.GET("/customer", customer.GetCustomers)
-	r.POST("/customer", customer.PostCustomer)
-	r.DELETE("/customer", customer.DeleteCustomer)
-	r.PUT("/customer", customer.PutCustomer)
+	r.GET("/customers", customer.GetCustomers)
+	r.POST("/customers", customer.PostCustomer)
+	r.DELETE("/customers", customer.DeleteCustomer)
+	r.PUT("/customers", customer.PutCustomer)
 }

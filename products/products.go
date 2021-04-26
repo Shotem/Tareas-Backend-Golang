@@ -36,7 +36,7 @@ func PostProduct(c echo.Context) error {
 	}
 
 	db := connect_utils.DB_info.Open()
-	result := db.Select("LastName", "FirstName").Create(&prod)
+	result := db.Select("ProductName", "UnitPrice").Create(&prod)
 	if result.Error != nil {
 		log.Panicln("[Insert Error] " + result.Error.Error())
 	}
