@@ -15,5 +15,5 @@ func employeeRoutes(r *echo.Group) {
 	r.GET("/employees", employees.GetEmployees)
 	r.POST("/employees", employees.PostEmployee)
 	r.DELETE("/employees", employees.DeleteEmployee)
-	//r.DELETE("/cols", employees.GetCols)
+	r.PUT("/employees", employees.PutEmployee)
 }

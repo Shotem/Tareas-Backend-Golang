@@ -40,6 +40,7 @@ func PostEmployee(c echo.Context) error {
 	return c.JSON(http.StatusOK, "Inserted Succesfully")
 }
 
+// #region If GORM worked
 /*
 func DeleteEmployee(c echo.Context) error {
 
@@ -60,6 +61,7 @@ func DeleteEmployee(c echo.Context) error {
 
 }
 */
+// #endregion
 
 func DeleteEmployee(c echo.Context) error {
 
@@ -73,14 +75,61 @@ func DeleteEmployee(c echo.Context) error {
 		log.Fatal("Error opening Database: " + err.Error())
 	}
 
-	// delete from Employees where EmployeeID = id
-	result, _ := db.Query(fmt.Sprintf("delete from %s where EmployeeID = %d", Employee{}.TableName(), id))
-
-	if result.Err() != nil {
-		log.Panic("[DeleteError] " + result.Err().Error())
+	result, err := db.Query(fmt.Sprintf("delete from %s where EmployeeID = %d", Employee{}.TableName(), id))
+	if err != nil {
+		log.Panic("[Update Error] " + err.Error())
 	}
 	defer result.Close()
 
 	return c.String(http.StatusOK, "Deleted Succesfully")
 
+}
+
+// #region If GORM worked
+/*
+func PutEmployee(c echo.Context) error {
+	id, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Couldn't parse "+c.FormValue("id"))
+	}
+	var emp Employee
+
+	db := connect_utils.DB_info.Open()
+	result := db.First(&emp, id)
+	if result.Error != nil {
+		log.Panicln("[Select Error] " + result.Error.Error())
+	}
+
+	emp.Title.String = c.FormValue("title")
+	emp.Title.Valid = true
+
+	result = db.Save(&emp)
+	if result.Error != nil {
+		log.Panicln("[Update Error] " + result.Error.Error())
+	}
+
+	return c.JSON(http.StatusOK, "Updated Succesfully")
+}
+*/
+// #endregion
+
+func PutEmployee(c echo.Context) error {
+	title := c.FormValue("title")
+	id, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Couldn't parse "+c.FormValue("id"))
+	}
+
+	db, err := sql.Open("mssql", connect_utils.DB_info.ConnectionString())
+	if err != nil {
+		log.Fatal("Error opening Database: " + err.Error())
+	}
+
+	result, err := db.Query(fmt.Sprintf("update %s set Title = '%s' where EmployeeID = %d", Employee{}.TableName(), title, id))
+	if err != nil {
+		log.Panic("[Update Error] " + err.Error())
+	}
+	defer result.Close()
+
+	return c.JSON(http.StatusOK, "Updated Succesfully")
 }
