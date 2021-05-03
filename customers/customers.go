@@ -3,7 +3,6 @@ package customers
 import (
 	connect_utils "api/conn_utils"
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -72,18 +71,20 @@ func DeleteCustomer(c echo.Context) error {
 
 func PutCustomer(c echo.Context) error {
 	title := c.FormValue("title")
-	id := c.FormValue("id")
+	id := c.Param("id")
+	db := connect_utils.DB_info.Open()
+	var customer Customer
 
-	db, err := sql.Open("mssql", connect_utils.DB_info.ConnectionString())
-	if err != nil {
-		log.Fatal("Error opening Database: " + err.Error())
-	}
-
-	result, err := db.Query(fmt.Sprintf("update %s set ContactTitle = '%s' where CustomerID = '%s'", Customer{}.TableName(), title, id))
-	if err != nil {
-		log.Panicln("[Update Error] " + err.Error())
+	result := db.Find(&customer, "CustomerID = ?", id)
+	if result.Error != nil {
+		log.Panicln("[Select Error] " + result.Error.Error())
 	}
 	defer result.Close()
+
+	result = db.Model(&customer).Update("ContactTitle", title)
+	if result.Error != nil {
+		log.Panicln("[Update Error] " + result.Error.Error())
+	}
 
 	return c.JSON(http.StatusOK, "Updated Succesfully")
 }

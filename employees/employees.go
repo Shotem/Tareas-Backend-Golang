@@ -2,8 +2,6 @@ package employees
 
 import (
 	connect_utils "api/conn_utils"
-	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -78,21 +76,23 @@ func DeleteEmployee(c echo.Context) error {
 
 func PutEmployee(c echo.Context) error {
 	title := c.FormValue("title")
-	id, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return c.String(http.StatusBadRequest, "Couldn't parse "+c.FormValue("id"))
 	}
+	db := connect_utils.DB_info.Open()
+	var employee Employee
 
-	db, err := sql.Open("mssql", connect_utils.DB_info.ConnectionString())
-	if err != nil {
-		log.Fatal("Error opening Database: " + err.Error())
-	}
-
-	result, err := db.Query(fmt.Sprintf("update %s set Title = '%s' where EmployeeID = %d", Employee{}.TableName(), title, id))
-	if err != nil {
-		log.Panicln("[Update Error] " + err.Error())
+	result := db.Find(&employee, "EmployeeID = ?", id)
+	if result.Error != nil {
+		log.Panicln("[Select Error] " + result.Error.Error())
 	}
 	defer result.Close()
+
+	result = db.Model(&employee).Update("Title", title)
+	if result.Error != nil {
+		log.Panicln("[Update Error] " + result.Error.Error())
+	}
 
 	return c.JSON(http.StatusOK, "Updated Succesfully")
 }

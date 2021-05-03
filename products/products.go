@@ -3,7 +3,6 @@ package products
 import (
 	connect_utils "api/conn_utils"
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -86,21 +85,26 @@ func PutProduct(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusBadRequest, "Couldn't parse "+c.FormValue("id"))
 	}
-	id, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return c.String(http.StatusBadRequest, "Couldn't parse "+c.FormValue("id"))
 	}
+	db := connect_utils.DB_info.Open()
+	var product Product
 
-	db, err := sql.Open("mssql", connect_utils.DB_info.ConnectionString())
-	if err != nil {
-		log.Fatal("Error opening Database: " + err.Error())
-	}
-
-	result, err := db.Query(fmt.Sprintf("update %s set UnitPrice = %f where ProductID = %d", Product{}.TableName(), uPrice, id))
-	if err != nil {
-		log.Panicln("[Update Error] " + err.Error())
+	result := db.Find(&product, "ProductID = ?", id)
+	if result.Error != nil {
+		log.Panicln("[Select Error] " + result.Error.Error())
 	}
 	defer result.Close()
+
+	product.UnitPrice.Float64 = uPrice
+	product.UnitPrice.Valid = true
+
+	result = db.Model(&product).Update("UnitPrice", uPrice)
+	if result.Error != nil {
+		log.Panicln("[Update Error] " + result.Error.Error())
+	}
 
 	return c.JSON(http.StatusOK, "Updated Succesfully")
 }
