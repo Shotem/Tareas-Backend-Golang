@@ -25,6 +25,25 @@ func GetProducts(c echo.Context) error {
 	return c.JSON(http.StatusOK, employees)
 }
 
+func GetProductByID(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Couldn't parse "+c.FormValue("id"))
+	}
+
+	var employees []Product
+
+	db := connect_utils.DB_info.Open()
+	result := db.Where("ProductID = ?", id).Find(&employees)
+
+	if result.Error != nil {
+		log.Panicln("[Select Error] " + result.Error.Error())
+		return c.JSON(http.StatusInternalServerError, result.Error.Error())
+	}
+
+	return c.JSON(http.StatusOK, employees)
+}
+
 func PostProduct(c echo.Context) error {
 	uPrice, err := strconv.ParseFloat(c.FormValue("uPrice"), 64)
 	if err != nil {
@@ -46,19 +65,15 @@ func PostProduct(c echo.Context) error {
 
 func DeleteProduct(c echo.Context) error {
 
-	id, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return c.String(http.StatusBadRequest, "Couldn't parse "+c.FormValue("id"))
 	}
+	db := connect_utils.DB_info.Open()
 
-	db, err := sql.Open("mssql", connect_utils.DB_info.ConnectionString())
-	if err != nil {
-		log.Fatal("Error opening Database: " + err.Error())
-	}
-
-	result, err := db.Query(fmt.Sprintf("delete from %s where ProductID = %d", Product{}.TableName(), id))
-	if err != nil {
-		log.Panic("[Update Error] " + err.Error())
+	result := db.Delete(&Product{}, "ProductID = ?", id)
+	if result.Error != nil {
+		log.Panicln("[Delete Error] " + result.Error.Error())
 	}
 	defer result.Close()
 
@@ -83,7 +98,7 @@ func PutProduct(c echo.Context) error {
 
 	result, err := db.Query(fmt.Sprintf("update %s set UnitPrice = %f where ProductID = %d", Product{}.TableName(), uPrice, id))
 	if err != nil {
-		log.Panic("[Update Error] " + err.Error())
+		log.Panicln("[Update Error] " + err.Error())
 	}
 	defer result.Close()
 

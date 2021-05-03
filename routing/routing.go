@@ -17,21 +17,24 @@ func Routes(e *echo.Echo) {
 
 func employeeRoutes(r *echo.Group) {
 	r.GET("/employees", employees.GetEmployees)
+	r.GET("/employees/:id", employees.GetEmployeeByID)
 	r.POST("/employees", employees.PostEmployee)
-	r.DELETE("/employees", employees.DeleteEmployee)
+	r.DELETE("/employees/:id", employees.DeleteEmployee)
 	r.PUT("/employees", employees.PutEmployee)
 }
 
 func productRoutes(r *echo.Group) {
 	r.GET("/products", product.GetProducts)
+	r.GET("/products/:id", product.GetProductByID)
 	r.POST("/products", product.PostProduct)
-	r.DELETE("/products", product.DeleteProduct)
+	r.DELETE("/products/:id", product.DeleteProduct)
 	r.PUT("/products", product.PutProduct)
 }
 
 func customerRoutes(r *echo.Group) {
 	r.GET("/customers", customer.GetCustomers)
+	r.GET("/customers/:id", customer.GetCustomerByID)
 	r.POST("/customers", customer.PostCustomer)
-	r.DELETE("/customers", customer.DeleteCustomer)
+	r.DELETE("/customers/:id", customer.DeleteCustomer)
 	r.PUT("/customers", customer.PutCustomer)
 }

@@ -11,29 +11,44 @@ import (
 )
 
 func GetCustomers(c echo.Context) error {
-	var employees []Customer
+	var customers []Customer
 
 	db := connect_utils.DB_info.Open()
-	result := db.Find(&employees)
+	result := db.Find(&customers)
 
 	if result.Error != nil {
 		log.Panicln("[Select Error] " + result.Error.Error())
 		return c.JSON(http.StatusInternalServerError, result.Error.Error())
 	}
 
-	return c.JSON(http.StatusOK, employees)
+	return c.JSON(http.StatusOK, customers)
+}
+
+func GetCustomerByID(c echo.Context) error {
+	id := c.Param("id")
+
+	var customer Customer
+	db := connect_utils.DB_info.Open()
+	result := db.Where("CustomerID = ?", id).Find(&customer)
+
+	if result.Error != nil {
+		log.Panicln("[Select Error] " + result.Error.Error())
+		return c.JSON(http.StatusInternalServerError, result.Error.Error())
+	}
+
+	return c.JSON(http.StatusOK, customer)
 }
 
 func PostCustomer(c echo.Context) error {
 
-	emp := Customer{
+	cus := Customer{
 		CustomerID:  c.FormValue("id"),
 		CompanyName: c.FormValue("company-name"),
 		ContactName: sql.NullString{String: c.FormValue("contact-name"), Valid: true},
 	}
 
 	db := connect_utils.DB_info.Open()
-	result := db.Select("CustomerID", "CompanyName", "ContactName").Create(&emp)
+	result := db.Select("CustomerID", "CompanyName", "ContactName").Create(&cus)
 	if result.Error != nil {
 		log.Panicln("[Insert Error] " + result.Error.Error())
 	}
@@ -43,16 +58,12 @@ func PostCustomer(c echo.Context) error {
 
 func DeleteCustomer(c echo.Context) error {
 
-	id := c.FormValue("id")
+	id := c.Param("id")
+	db := connect_utils.DB_info.Open()
 
-	db, err := sql.Open("mssql", connect_utils.DB_info.ConnectionString())
-	if err != nil {
-		log.Fatal("Error opening Database: " + err.Error())
-	}
-
-	result, err := db.Query(fmt.Sprintf("delete from %s where CustomerID = '%s'", Customer{}.TableName(), id))
-	if err != nil {
-		log.Panic("[Update Error] " + err.Error())
+	result := db.Delete(&Customer{}, "CustomerID = ?", id)
+	if result.Error != nil {
+		log.Panicln("[Delete Error] " + result.Error.Error())
 	}
 	defer result.Close()
 
@@ -70,7 +81,7 @@ func PutCustomer(c echo.Context) error {
 
 	result, err := db.Query(fmt.Sprintf("update %s set ContactTitle = '%s' where CustomerID = '%s'", Customer{}.TableName(), title, id))
 	if err != nil {
-		log.Panic("[Update Error] " + err.Error())
+		log.Panicln("[Update Error] " + err.Error())
 	}
 	defer result.Close()
 
